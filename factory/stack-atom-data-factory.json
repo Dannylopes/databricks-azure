@@ -1,0 +1,9 @@
+{
+	"name": "stack-atom-data-factory",
+	"location": "eastus2",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "e0badb5e-cd71-404b-a2cf-4d5efe901466",
+		"tenantId": "46505875-a4f1-4a13-a17e-cb57668837ba"
+	}
+}
