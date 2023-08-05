@@ -1,0 +1,329 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nome do Data Factory",
+			"defaultValue": "stack-atom-data-factory"
+		},
+		"AzureSqlDatabase_connectionString": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'connectionString' de 'AzureSqlDatabase'"
+		},
+		"stack_atom_Linked_Service_Synapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'connectionString' de 'stack_atom_Linked_Service_Synapse'"
+		},
+		"stack_atom_data_lake_linked_Service_accountKey": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'accountKey' de 'stack_atom_data_lake_linked_Service'"
+		},
+		"stack_atom_linked_service_Azure_Databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'accessToken' de 'stack_atom_linked_service_Azure_Databricks'"
+		},
+		"stack_atom_data_lake_linked_Service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://stackatomstorageaccount.dfs.core.windows.net/"
+		},
+		"stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0804-140108-yqbg1ot2"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/datalake-ingestion')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ingestao-landing-silver",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Repos/atom.daniel.mota@outlook.com/databricks-azure/Notebooks/ingest_silver"
+						},
+						"linkedServiceName": {
+							"referenceName": "stack_atom_linked_service_Azure_Databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "ingestao-silver-gold",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "ingestao-landing-silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Repos/atom.daniel.mota@outlook.com/databricks-azure/Notebooks/ingest_gold"
+						},
+						"linkedServiceName": {
+							"referenceName": "stack_atom_linked_service_Azure_Databricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/stack_atom_linked_service_Azure_Databricks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/olist_customers_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "customer_id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_unique_id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_zip_code_prefix",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_city",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_state",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "olist_customers_dataset"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/olist_data_lake_landing')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "stack_atom_data_lake_linked_Service",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "landing"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/stack_atom_data_lake_linked_Service')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stack_atom_destination_data_lake_landing_all')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "stack_atom_data_lake_linked_Service",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"fileSystem": "landing"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/stack_atom_data_lake_linked_Service')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stack_atom_source_sql_server_all')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stack_atom_Linked_Service_Synapse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('stack_atom_Linked_Service_Synapse_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stack_atom_data_lake_linked_Service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('stack_atom_data_lake_linked_Service_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('stack_atom_data_lake_linked_Service_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stack_atom_linked_service_Azure_Databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-430688432438117.17.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('stack_atom_linked_service_Azure_Databricks_accessToken')]"
+					},
+					"existingClusterId": "[parameters('stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/hourly_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "datalake-ingestion",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2023-08-05T18:32:00",
+						"timeZone": "E. South America Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/datalake-ingestion')]"
+			]
+		}
+	]
+}

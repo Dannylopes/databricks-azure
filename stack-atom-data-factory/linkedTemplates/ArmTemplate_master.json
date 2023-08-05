@@ -1,0 +1,84 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nome do Data Factory",
+			"defaultValue": "stack-atom-data-factory"
+		},
+		"AzureSqlDatabase_connectionString": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'connectionString' de 'AzureSqlDatabase'"
+		},
+		"stack_atom_Linked_Service_Synapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'connectionString' de 'stack_atom_Linked_Service_Synapse'"
+		},
+		"stack_atom_data_lake_linked_Service_accountKey": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'accountKey' de 'stack_atom_data_lake_linked_Service'"
+		},
+		"stack_atom_linked_service_Azure_Databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Cadeia de caracteres segura para 'accessToken' de 'stack_atom_linked_service_Azure_Databricks'"
+		},
+		"stack_atom_data_lake_linked_Service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://stackatomstorageaccount.dfs.core.windows.net/"
+		},
+		"stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0804-140108-yqbg1ot2"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI para a conta de armazenamento contendo os modelos do ARM vinculados"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Token SAS para a conta de armazenamento contendo modelos do ARM vinculados"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "stack-atom-data-factory_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureSqlDatabase_connectionString": {
+						"value": "[parameters('AzureSqlDatabase_connectionString')]"
+					},
+					"stack_atom_Linked_Service_Synapse_connectionString": {
+						"value": "[parameters('stack_atom_Linked_Service_Synapse_connectionString')]"
+					},
+					"stack_atom_data_lake_linked_Service_accountKey": {
+						"value": "[parameters('stack_atom_data_lake_linked_Service_accountKey')]"
+					},
+					"stack_atom_linked_service_Azure_Databricks_accessToken": {
+						"value": "[parameters('stack_atom_linked_service_Azure_Databricks_accessToken')]"
+					},
+					"stack_atom_data_lake_linked_Service_properties_typeProperties_url": {
+						"value": "[parameters('stack_atom_data_lake_linked_Service_properties_typeProperties_url')]"
+					},
+					"stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

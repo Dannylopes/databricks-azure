@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "stack-atom-data-factory"
+		},
+		"AzureSqlDatabase_connectionString": {
+			"value": ""
+		},
+		"stack_atom_Linked_Service_Synapse_connectionString": {
+			"value": ""
+		},
+		"stack_atom_data_lake_linked_Service_accountKey": {
+			"value": ""
+		},
+		"stack_atom_linked_service_Azure_Databricks_accessToken": {
+			"value": ""
+		},
+		"stack_atom_data_lake_linked_Service_properties_typeProperties_url": {
+			"value": "https://stackatomstorageaccount.dfs.core.windows.net/"
+		},
+		"stack_atom_linked_service_Azure_Databricks_properties_typeProperties_existingClusterId": {
+			"value": "0804-140108-yqbg1ot2"
+		}
+	}
+}
