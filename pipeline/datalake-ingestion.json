@@ -13,7 +13,14 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/atom.daniel.mota@outlook.com/databricks-azure/Notebooks/ingest_silver"
+				},
+				"linkedServiceName": {
+					"referenceName": "stack_atom_linked_service_Azure_Databricks",
+					"type": "LinkedServiceReference"
+				}
 			},
 			{
 				"name": "ingestao-silver-gold",
@@ -33,7 +40,14 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Repos/atom.daniel.mota@outlook.com/databricks-azure/Notebooks/ingest_gold"
+				},
+				"linkedServiceName": {
+					"referenceName": "stack_atom_linked_service_Azure_Databricks",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []
